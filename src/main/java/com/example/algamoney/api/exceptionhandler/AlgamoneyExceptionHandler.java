@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,16 @@ public class AlgamoneyExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@Autowired
 	private MessageSource messageSource;
+	
+	@ExceptionHandler({InvalidRequestParameterNameException.class})
+	public ResponseEntity<Object> handleBadRequestException(InvalidRequestParameterNameException ex, WebRequest request) {
+		
+		String messagemUsuario = ex.getMessage();
+		String mensagemDesenvolvedor = ex.toString();
+		
+		List<Erro> erros = Arrays.asList(new Erro(messagemUsuario, mensagemDesenvolvedor ));
+		return handleExceptionInternal(ex, erros, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+	}
 
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
@@ -54,6 +66,14 @@ public class AlgamoneyExceptionHandler extends ResponseEntityExceptionHandler {
 		return handleExceptionInternal(ex, erros, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
 	}
 
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<Object> hndleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
+		String messagemUsuario = messageSource.getMessage("recurso.operacao-nao-permitida", null, LocaleContextHolder.getLocale());
+		String mensagemDesenvolvedor = ExceptionUtils.getRootCauseMessage(ex);
+		List<Erro> erros = Arrays.asList(new Erro(messagemUsuario, mensagemDesenvolvedor));
+		return handleExceptionInternal(ex, erros, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+	}
+	
 	private List<Erro> criarListaDeErros(BindingResult bindingResult) {
 		List<Erro> erros = new ArrayList<Erro>();
 
@@ -73,6 +93,23 @@ public class AlgamoneyExceptionHandler extends ResponseEntityExceptionHandler {
 
 		private String mensagemUsuario;
 		private String mensagemDesenvolvedor;
+	}
+	
+	public static class InvalidRequestParameterNameException extends RuntimeException {
+
+		private static final long serialVersionUID = -8285380716620532022L;
+
+		public InvalidRequestParameterNameException(String message, Throwable cause) {
+			super(message, cause);
+		}
+
+		public InvalidRequestParameterNameException(String message) {
+			super(message);
+		}
+
+		public InvalidRequestParameterNameException(Throwable cause) {
+			super(cause);
+		}
 	}
 
 }
