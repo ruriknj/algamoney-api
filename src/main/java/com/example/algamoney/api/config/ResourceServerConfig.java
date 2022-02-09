@@ -9,37 +9,31 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.provider.expression.OAuth2MethodSecurityExpressionHandler;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
-@SuppressWarnings("deprecation")
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ResourceServerConfig extends WebSecurityConfigurerAdapter{
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("admin")
-                .password("{noop}admin")
-                .roles("ROLE");
-    }
-
-    @Override
     public void configure(HttpSecurity http) throws Exception {
-
+        
         http.authorizeRequests()
                 .antMatchers("/categorias").permitAll()
                 .anyRequest().authenticated()
@@ -47,7 +41,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter{
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
                 .csrf().disable()
-                .oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthenticationConverter());
+            .oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthenticationConverter());
     }
 
     @Bean
@@ -56,7 +50,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter{
 
         return NimbusJwtDecoder.withSecretKey(secretKey).build();
     }
-
+    
     @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {        
@@ -65,9 +59,9 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter{
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
-
+    
     private JwtAuthenticationConverter jwtAuthenticationConverter() {
 		JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
 		jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
@@ -89,4 +83,9 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter{
 
 		return jwtAuthenticationConverter;
 	}
+    
+//    @Bean
+//	public MethodSecurityExpressionHandler createExpressionHandler() {
+//		return new OAuth2MethodSecurityExpressionHandler();
+//	}
 }

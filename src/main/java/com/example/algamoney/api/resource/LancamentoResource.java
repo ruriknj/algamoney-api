@@ -36,6 +36,7 @@ import com.example.algamoney.api.exceptionhandler.AlgamoneyExceptionHandler.Inva
 import com.example.algamoney.api.model.Lancamento;
 import com.example.algamoney.api.repository.LancamentoRepository;
 import com.example.algamoney.api.repository.filter.LancamentoFilter;
+import com.example.algamoney.api.repository.projection.ResumoLancamento;
 import com.example.algamoney.api.service.LancamentoService;
 import com.example.algamoney.api.service.exception.PessoaInexistenteOuInativaException;
 
@@ -60,6 +61,12 @@ public class LancamentoResource {
 	public Page<Lancamento> pesquisar(LancamentoFilter lancamentoFilter, Pageable pageable) {
 		return lancamentoRepository.filtrar(lancamentoFilter, pageable);
 
+	}
+	
+	@GetMapping(params = "resumo")
+	public Page<ResumoLancamento> resumir(LancamentoFilter lancamentoFilter, Pageable pageable) {
+		return lancamentoRepository.resumir(lancamentoFilter, pageable);
+		
 	}
 	//usando query nativa
 	 @GetMapping("/filtro")

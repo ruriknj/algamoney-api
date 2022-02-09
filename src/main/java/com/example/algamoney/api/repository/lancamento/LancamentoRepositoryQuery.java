@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.example.algamoney.api.model.Lancamento;
 import com.example.algamoney.api.repository.filter.LancamentoFilter;
+import com.example.algamoney.api.repository.projection.ResumoLancamento;
 
 public interface LancamentoRepositoryQuery {
 
@@ -14,8 +15,7 @@ public interface LancamentoRepositoryQuery {
 
 	public List<Lancamento> filtrarComJpql(LancamentoFilter lancamentoFilter);
 
-////	public Page<Lancamento> customQueryPageableDate(String descricao, String dataInicio,String dataFim,
-////            Pageable pageable);
+	public Page<ResumoLancamento> resumir(LancamentoFilter lancamentoFilter, Pageable pageeble);
 	
 	
 }

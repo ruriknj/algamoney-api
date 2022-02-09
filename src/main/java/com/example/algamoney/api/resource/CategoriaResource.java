@@ -1,11 +1,13 @@
 package com.example.algamoney.api.resource;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,7 @@ public class CategoriaResource {
 	private ApplicationEventPublisher publisher; //dispara um evento no spring
 
 	@GetMapping
+	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_CATEGORIA') and hasAuthority('SCOPE_read')" )
 	public ResponseEntity<?> listar() {
 		var categorias = categoriaRepository.findAll();
 		return !categorias.isEmpty() ? ResponseEntity.ok(categorias) : ResponseEntity.noContent().build();
@@ -38,8 +41,9 @@ public class CategoriaResource {
 	}
 
 	@PostMapping
-	private ResponseEntity<?> criar(@Validated @RequestBody Categoria categoria, HttpServletResponse response) {
-		var categoriaSalva = categoriaRepository.save(categoria);
+	@PreAuthorize("hasAuthority('ROLE_CADASTRAR_CATEGORIA') and hasAuthority('SCOPE_write')")
+	public ResponseEntity<Categoria> criar(@Valid @RequestBody Categoria categoria, HttpServletResponse response) {
+		Categoria categoriaSalva = categoriaRepository.save(categoria);
 
 		publisher.publishEvent(new RecursoCriadoEvent(publisher, response, categoriaSalva.getCodigo() ));
 
@@ -83,6 +87,7 @@ public class CategoriaResource {
 //	}
 
 	@GetMapping("/{codigo}")
+	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_CATEGORIA') and hasAuthority('SCOPE_read')")
 	public ResponseEntity<Categoria> buscarPeloId(@PathVariable Long codigo) {
 		return categoriaRepository.findById(codigo).map(categoria -> ResponseEntity.ok().body(categoria))
 				.orElseGet(() -> ResponseEntity.notFound().build());
