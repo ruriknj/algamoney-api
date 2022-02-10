@@ -11,6 +11,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,14 @@ import com.example.algamoney.api.config.property.AlgamoneyApiProperty;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsFilter implements Filter {
 
-	private AlgamoneyApiProperty algamoneyApiProperty;
+	private final AlgamoneyApiProperty algamoneyApiProperty;
+	private final String originPermitida;
+	
+	@Autowired  //injeção via construtor
+	public CorsFilter(AlgamoneyApiProperty algamoneyApiProperty) {
+		this.algamoneyApiProperty = algamoneyApiProperty;
+		this.originPermitida = algamoneyApiProperty.getOriginPermitida();
+	}
 	
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
